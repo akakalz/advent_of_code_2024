@@ -1,4 +1,4 @@
-from advent_of_code_2024 import *
+from advent_of_code_2024 import *  # all days and the day base class
 
 
 days = {
@@ -33,7 +33,11 @@ days = {
 if __name__ == "__main__":
     print("Enter day to run: (e.g. 8)")
     day = input()
-    d = days[day]()
+
+    if day not in days:
+        raise ValueError(f"value not recognized: {day}\n\tPlease enter a number 1 to 25")
+
+    d: Day = days[day]()
     print(f"== {str(d)} ====================")
     print(f"    part 1: {d.part_1()}")
     print(f"    part 2: {d.part_2()}")

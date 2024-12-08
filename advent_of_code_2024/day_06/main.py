@@ -128,7 +128,6 @@ class Day6(Day):
         return len(obstructions_placed)  # 1688
 
 
-
 if __name__ == "__main__":
     d = Day6()
     print(f"== {str(d)} ====================")

@@ -1,6 +1,107 @@
-from collections import deque, defaultdict
+from collections import deque
 from advent_of_code_2024.day import Day
 
+
+class File:
+    def __init__(self, id: int, size: int) -> None:
+        self.id = id
+        self.size = size
+
+    def __str__(self) -> str:
+        return f"{self.id}" * self.size
+
+    def __hash__(self) -> int:
+        return hash((self.id, self.size))
+
+    def __int__(self) -> int:
+        return self.id
+
+
+class FreeSpace:
+    def __init__(self, size: int) -> None:
+        self.size = size
+
+    def __str__(self) -> str:
+        return "." * self.size
+
+
+class Disk:
+    def __init__(self, initial_state: str) -> None:
+        self._state: list = self._render_state(initial_state)
+
+    def __str__(self) -> str:
+        return "".join([str(obj) for obj in self._state])
+
+    def _render_state(self, initial_state: deque) -> list:
+        array = []
+        _id = 0
+        for i in range(0, len(initial_state), 2):
+            j = i + 1
+            block = int(initial_state[i])
+            file = File(_id, block)
+            array.append(file)
+            try:
+                free = FreeSpace(int(initial_state[j]))
+                array.append(free)
+            except IndexError:
+                pass
+            _id += 1
+        return array
+
+    def _get_free_space_positions(self) -> list[tuple[int, list[FreeSpace]]]:
+        free_spaces = []
+        for i, item in enumerate(self._state):
+            if isinstance(item, FreeSpace):
+                free_spaces.append((i, item))
+        return free_spaces
+
+    def _move_file(self, file: File, from_idx: int, to_idx: int) -> None:
+        del self._state[from_idx]
+        if isinstance(self._state[from_idx - 1], FreeSpace):
+            self._state[from_idx - 1].size += file.size
+        elif isinstance(self._state[from_idx], FreeSpace):
+            self._state[from_idx].size += file.size
+        else:
+            self._state.insert(from_idx, FreeSpace(file.size))
+        self._state.insert(to_idx, file)
+
+    def defrag(self) -> None:
+        """
+        rearranges the state to fill as many open spaces toward the beginning of the disk
+        """
+        no_space_or_moved = set()
+        defragged = False
+        while not defragged:
+            free_spaces = self._get_free_space_positions()
+            for idx in range(len(self._state) - 1, 0, -1):
+                if isinstance(self._state[idx], File) and self._state[idx] not in no_space_or_moved:
+                    item_to_move: File = self._state[idx]
+                    for _, free_space in enumerate(free_spaces):
+                        if item_to_move.size <= free_space[1].size and idx > free_space[0]:
+                            free_space[1].size -= item_to_move.size
+                            self._move_file(item_to_move, idx, free_space[0])
+                            no_space_or_moved.add(item_to_move)
+                            break
+                    else:
+                        no_space_or_moved.add(item_to_move)
+                    break
+            else:
+                defragged = True
+
+    def get_state(self) -> list[File|FreeSpace]:
+        return self._state
+
+    def checksum(self) -> int:
+        counter = 0
+        checksum = 0
+        for item in self._state:
+            if isinstance(item, FreeSpace):
+                counter += item.size
+            else:
+                for _ in range(item.size):
+                    checksum += counter * item.id
+                    counter += 1
+        return checksum
 
 class Day9(Day):
     def __init__(self):
@@ -10,7 +111,7 @@ class Day9(Day):
     def _checksum(self, array: list) -> int:
         checksum = 0
         for i, num in enumerate(array):
-            if num is None:
+            if num is None or num == "." or isinstance(num, FreeSpace):
                 continue
             checksum += i * int(num)
         return checksum
@@ -46,37 +147,15 @@ class Day9(Day):
                     pass
         return sorted_array
 
-    def _scan_contiguous_free_space(self, array: deque) -> dict[int, list[int]]:
-        free_spaces = defaultdict(list)
-        is_free = False
-        last_idx = -1
-        for i, item in enumerate(array):
-            if item is None:
-                if not is_free:
-                    last_idx = i
-                else:
-                    free_spaces[last_idx].append(i)
-                is_free = True
-            else:
-                is_free = False
-        return free_spaces
-
-    def _sort_to_fill_size(self, array: deque) -> list:
-        previous_moved_items = -1
-        moved_items = 0
-        # while moved_items != previous_moved_items:
-        #     pass
-        return []
-
     def part_1(self):
         array = self._render_inital_array()
         array = self._sort_array(array)
         return self._checksum(array)  # 6384282079460
 
     def part_2(self):
-        array = self._render_inital_array()
-        array = self._sort_to_fill_size(array)
-        return self._checksum(array)  # ???
+        disk = Disk(self.input_data)
+        disk.defrag()
+        return disk.checksum()  # 6408966547049
 
 
 if __name__ == "__main__":

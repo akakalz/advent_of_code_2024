@@ -5,6 +5,7 @@ from advent_of_code_2024.day import Day
 class Day11(Day):
     def __init__(self):
         super().__init__(11, f"advent_of_code_2024/day_11/puzzle_input.txt")
+        self.basic_cache = {}
 
     """
     rules
@@ -28,23 +29,23 @@ class Day11(Day):
         return new_stones
 
     def part_1(self):
-        blinks = 25
         self.stones = list(map(int, self.input_data[0].split(" ")))
+        stone_storage = defaultdict(int)
+        for num in self.stones:
+            stone_storage[num] += 1
+        blinks = 25
         for _ in range(blinks):
-            new_stones = []
-            for stone in self.stones:
-                if stone == 0:
-                    new_stones.append(1)
-                elif not len(str(stone)) % 2:
-                    new_stones.extend(self._split_stone(stone))
-                else:
-                    new_stones.append(2024 * stone)
-            self.stones = new_stones
-        return len(self.stones)  # 198075
+            new_stone_storage = defaultdict(int)
+            for k, v in stone_storage.items():
+                if k not in self.basic_cache:
+                    self.basic_cache[k] = self._calc_values(k)
+                for stone in self.basic_cache[k]:
+                    new_stone_storage[stone] += v
+            stone_storage = new_stone_storage
+        return sum(stone_storage.values())  # 198075
 
     def part_2(self):
         self.stones = list(map(int, self.input_data[0].split(" ")))
-        basic_cache = {}
         stone_storage = defaultdict(int)
         for num in self.stones:
             stone_storage[num] += 1
@@ -52,9 +53,9 @@ class Day11(Day):
         for _ in range(blinks):
             new_stone_storage = defaultdict(int)
             for k, v in stone_storage.items():
-                if k not in basic_cache:
-                    basic_cache[k] = self._calc_values(k)
-                for stone in basic_cache[k]:
+                if k not in self.basic_cache:
+                    self.basic_cache[k] = self._calc_values(k)
+                for stone in self.basic_cache[k]:
                     new_stone_storage[stone] += v
             stone_storage = new_stone_storage
         return sum(stone_storage.values())  # 235571309320764

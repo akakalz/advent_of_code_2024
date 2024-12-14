@@ -35,15 +35,15 @@ class Day13(Day):
         while next_line is not None:
             while next_line:
                 match = X_Y_PATTERN.match(next_line)
-                a = match.group(1), match.group(2)
+                a = int(match.group(1)), int(match.group(2))
                 next_line = next(lines, None)
 
                 match = X_Y_PATTERN.match(next_line)
-                b = match.group(1), match.group(2)
+                b = int(match.group(1)), int(match.group(2))
                 next_line = next(lines, None)
 
                 match = X_Y_PATTERN.match(next_line)
-                p = match.group(1), match.group(2)
+                p = int(match.group(1)), int(match.group(2))
                 next_line = next(lines, None)
 
                 arcades.append(Arcade(a, b, p))
@@ -51,13 +51,39 @@ class Day13(Day):
 
         return arcades
 
-
     def part_1(self):
-        print(self.arcades[0])
-        return super().part_1()
+        winnables = []
+        max_press = 100
+        for arcade in self.arcades:
+            for i in range(max_press, 0, -1):
+                if all([
+                    (arcade.prize[0] - (arcade.button_b[0] * i)) % arcade.button_a[0] == 0,
+                    (arcade.prize[1] - (arcade.button_b[1] * i)) % arcade.button_a[1] == 0,
+                    (arcade.prize[0] - (arcade.button_b[0] * i)) // arcade.button_a[0] == \
+                        (arcade.prize[1] - (arcade.button_b[1] * i)) // arcade.button_a[1]
+                ]):
+                    winnables.append((arcade, i, (arcade.prize[1] - (arcade.button_b[1] * i)) // arcade.button_a[1]))
+                    break
+        print(len(winnables))
+        return sum([w[1] + (w[2] * 3) for w in winnables])  # 29711
 
     def part_2(self):
-        return super().part_2()
+        winnables = []
+        off_set = 10_000_000_000_000
+        max_press = 10000
+        for arcade in self.arcades:
+            arcade.prize[0], arcade.prize[1] = arcade.prize[0] + off_set, arcade.prize[1] + off_set
+            for i in range(max_press, 0, -1):
+                if all([
+                    (arcade.prize[0] - (arcade.button_b[0] * i)) % arcade.button_a[0] == 0,
+                    (arcade.prize[1] - (arcade.button_b[1] * i)) % arcade.button_a[1] == 0,
+                    (arcade.prize[0] - (arcade.button_b[0] * i)) // arcade.button_a[0] == \
+                        (arcade.prize[1] - (arcade.button_b[1] * i)) // arcade.button_a[1]
+                ]):
+                    winnables.append((arcade, i, (arcade.prize[1] - (arcade.button_b[1] * i)) // arcade.button_a[1]))
+                    break
+        print(len(winnables))
+        return sum([w[1] + (w[2] * 3) for w in winnables])  # 29711
 
 
 if __name__ == "__main__":

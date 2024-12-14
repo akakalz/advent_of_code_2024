@@ -1,4 +1,5 @@
 from collections import deque
+from typing import Union
 from advent_of_code_2024.day import Day
 
 
@@ -88,7 +89,7 @@ class Disk:
             else:
                 defragged = True
 
-    def get_state(self) -> list[File|FreeSpace]:
+    def get_state(self) -> list[Union[File,FreeSpace]]:
         return self._state
 
     def checksum(self) -> int:

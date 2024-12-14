@@ -7,6 +7,7 @@ authors = ["Andrew Kalz <andrew.kalz@gmail.com>"]
 [tool.poetry.dependencies]
 python = "^3.9"
 icecream = "^2.1.3"
+sympy = "^1.13.3"
 
 [tool.poetry.dev-dependencies]
 pytest = "^7.2.0"

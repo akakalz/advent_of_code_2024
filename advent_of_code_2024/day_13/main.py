@@ -1,6 +1,5 @@
 import re
 from dataclasses import dataclass
-# from sympy import Symbol
 from advent_of_code_2024.day import Day
 
 
@@ -64,26 +63,21 @@ class Day13(Day):
                 ]):
                     winnables.append((arcade, i, (arcade.prize[1] - (arcade.button_b[1] * i)) // arcade.button_a[1]))
                     break
-        print(len(winnables))
         return sum([w[1] + (w[2] * 3) for w in winnables])  # 29711
 
     def part_2(self):
-        winnables = []
+        tokens = 0
+        round_tolerance = 0.0001
         off_set = 10_000_000_000_000
-        max_press = 10000
-        for arcade in self.arcades:
-            arcade.prize[0], arcade.prize[1] = arcade.prize[0] + off_set, arcade.prize[1] + off_set
-            for i in range(max_press, 0, -1):
-                if all([
-                    (arcade.prize[0] - (arcade.button_b[0] * i)) % arcade.button_a[0] == 0,
-                    (arcade.prize[1] - (arcade.button_b[1] * i)) % arcade.button_a[1] == 0,
-                    (arcade.prize[0] - (arcade.button_b[0] * i)) // arcade.button_a[0] == \
-                        (arcade.prize[1] - (arcade.button_b[1] * i)) // arcade.button_a[1]
-                ]):
-                    winnables.append((arcade, i, (arcade.prize[1] - (arcade.button_b[1] * i)) // arcade.button_a[1]))
-                    break
-        print(len(winnables))
-        return sum([w[1] + (w[2] * 3) for w in winnables])  # 29711
+        for a in self.arcades:
+            px, py = a.prize[0] + off_set, a.prize[1] + off_set
+            A = (a.button_b[0] * py - a.button_b[1] * px) / \
+                (a.button_b[0] * a.button_a[1] - a.button_b[1] * a.button_a[0])
+            B = (px - a.button_a[0] * A) / a.button_b[0]
+            if abs(A - round(A)) < round_tolerance and abs(B - round(B)) < round_tolerance:
+                tokens += 3 * A + B
+
+        return int(tokens)  # 94955433618919, yay math
 
 
 if __name__ == "__main__":
